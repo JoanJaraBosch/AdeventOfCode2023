@@ -40,5 +40,59 @@ def puzzle1():
             cont=cont+number
         print("Solution part2- Puzzle1 is: " + str(cont))
 
+def puzzle2():
+    #Max of 12 red, 13 green and 14 blue
+    cont=1 #id game
+    result_part1= 0
+    result_part2 = 0
+    f = open("puzzle2", "r").readlines()
+    part = input("Which part of the puzzle you want to solve? (1/2): ")
+    if(part == "1"):
+        for l in f:
+            round_game = l.split(":")[1].split(";")
+            possible = True
+            size=0
+            while(size<len(round_game) and possible):
+                for cub in round_game[size].split(","):
+                    if("red" in cub.lower()):
+                        if(int(re.findall(r'\d+', cub)[0]) > 12):
+                            possible=False
+                    if ("green" in cub.lower()):
+                        if (int(re.findall(r'\d+', cub)[0]) > 13):
+                            possible = False
+
+                    if ("blue" in cub.lower()):
+                        if (int(re.findall(r'\d+', cub)[0]) > 14):
+                            possible = False
+                size=size+1
+            if(possible):
+                result_part1=result_part1+cont
+            cont=cont+1
+        print("The result of the Puzzle 2 part 1 is: "+str(result_part1))
+    else:
+        for l in f:
+            round_game = l.split(":")[1].split(";")
+            max_red=0
+            max_green=0
+            max_blue=0
+            for round in round_game:
+                for cub in round.split(","):
+                    if ("red" in cub.lower()):
+                        if (int(re.findall(r'\d+', cub)[0]) > max_red):
+                            max_red = int(re.findall(r'\d+', cub)[0])
+                    if ("green" in cub.lower()):
+                        if (int(re.findall(r'\d+', cub)[0]) > max_green):
+                            max_green = int(re.findall(r'\d+', cub)[0])
+                    if ("blue" in cub.lower()):
+                        if (int(re.findall(r'\d+', cub)[0]) > max_blue):
+                            max_blue = int(re.findall(r'\d+', cub)[0])
+            result_part2 = result_part2 + (max_blue*max_red*max_green)
+        print("The result of the Puzzle 2 part 2 is: " + str(result_part2))
+
 if __name__ == '__main__':
-    puzzle1()
+    puzz = input("Which puzzle do you want to solve?(1-25): ")
+    if(puzz == "1"):
+        puzzle1()
+    else:
+        if(puzz == "2"):
+            puzzle2()
