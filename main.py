@@ -1,5 +1,16 @@
 import re
 
+def matrix_initializer(f):
+    row = []
+    matrix = []
+    # Initialize matrix for puzzle3
+    for lines in f:
+        for letter in lines.replace("\n", ""):
+            row.append(letter)
+        matrix.append(row)
+        row = []
+    return matrix
+
 def puzzle1():
     f = open("puzzle1", "r")
     cont=0
@@ -89,6 +100,48 @@ def puzzle2():
             result_part2 = result_part2 + (max_blue*max_red*max_green)
         print("The result of the Puzzle 2 part 2 is: " + str(result_part2))
 
+
+def puzzle3():
+    with open("puzzle3") as f:
+        input = [line.strip() for line in f.readlines()]
+
+    symbols = []
+    numbers = []
+    gears = []
+    for line in input:
+        symbols.append(list(re.finditer(r"[^0-9.\s]", line)))
+        numbers.append(list(re.finditer(r"[0-9]+", line)))
+        gears.append(list(re.finditer(r"\*", line)))
+
+    parts = []
+    gear_ratios = []
+    for i in range(len(input)):
+        before = i - 1 if i >= 1 else None
+        after = i + 1 if i < len(input) - 1 else None
+
+        for s in symbols[i]:
+            for n in numbers[i]:
+                parts.append(int(n.group())) if s.end() >= n.start() and n.end() >= s.start() else None
+            for n in numbers[before]:
+                parts.append(int(n.group())) if s.end() >= n.start() and n.end() >= s.start() else None
+            for n in numbers[after]:
+                parts.append(int(n.group())) if s.end() >= n.start() and n.end() >= s.start() else None
+        for g in gears[i]:
+            __gear_parts = []
+            for n in numbers[i]:
+                __gear_parts.append(int(n.group())) if g.end() >= n.start() and n.end() >= g.start() else None
+            for n in numbers[before]:
+                __gear_parts.append(int(n.group())) if g.end() >= n.start() and n.end() >= g.start() else None
+            for n in numbers[after]:
+                __gear_parts.append(int(n.group())) if g.end() >= n.start() and n.end() >= g.start() else None
+            if (len(__gear_parts) == 2):
+                gear_ratios.append(__gear_parts[0] * __gear_parts[1])
+
+    print("------ part number sums -------")
+    print(sum(parts))
+    print("------ gear ratio sums --------")
+    print(sum(gear_ratios))
+
 if __name__ == '__main__':
     puzz = input("Which puzzle do you want to solve?(1-25): ")
     if(puzz == "1"):
@@ -96,3 +149,6 @@ if __name__ == '__main__':
     else:
         if(puzz == "2"):
             puzzle2()
+        else:
+            if (puzz == "3"):
+                puzzle3()
