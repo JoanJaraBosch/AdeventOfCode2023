@@ -142,6 +142,28 @@ def puzzle3():
     print("------ gear ratio sums --------")
     print(sum(gear_ratios))
 
+def puzzle4():
+    lines = open("puzzle4").readlines()
+
+    part1 = 0
+    matching_nums = []
+    for i, line in enumerate(lines):
+        line = line.split(':')[1].strip()
+        winning_nums = set(line.split('|')[0].strip().split())
+        nums_i_have = set(line.split('|')[1].strip().split())
+        matching_nums.append(len(winning_nums.intersection(nums_i_have)))
+        part1 += int(2 ** (matching_nums[i] - 1))
+    print("Part 2 puzzle 4 result is: " +str(part1))
+
+    scratchcard_nums = {i: 1 for i in range(1, len(lines) + 1)}
+    result_part2 = 0
+    for i in range(1, len(lines) + 1):
+        for j in range(scratchcard_nums[i]):
+            for k in range(i + 1, i + matching_nums[i - 1] + 1):
+                scratchcard_nums[k] += 1
+        result_part2 += scratchcard_nums[i]
+    print("Part 2 puzzle 4 result is: " + str(result_part2))
+
 if __name__ == '__main__':
     puzz = input("Which puzzle do you want to solve?(1-25): ")
     if(puzz == "1"):
@@ -152,3 +174,6 @@ if __name__ == '__main__':
         else:
             if (puzz == "3"):
                 puzzle3()
+            else:
+                if (puzz == "4"):
+                    puzzle4()
