@@ -1,5 +1,6 @@
 import re
 from typing import Tuple, List, Optional
+import math
 
 def matrix_initializer(f):
     row = []
@@ -293,6 +294,44 @@ def puzzle5():
     print("PART1 OF DAY 5 IS: "+str(part1(seeds, maps)))
     print("PART2 OF DAY 5 IS: "+str(part2(seeds, maps)))
 
+def puzzle6():
+    lines = open("puzzle6").readlines()
+    list_races_seconds = []
+    list_races_records = []
+    cont = 1
+    for line in lines:
+        if(cont == 1):
+             for second in line.split(":")[1].strip().split():
+                 list_races_seconds.append(int(second.strip()))
+        else:
+            for meters in line.split(":")[1].strip().split():
+                list_races_records.append(int(meters.strip()))
+        cont = cont + 1
+
+    cont = 0
+    resultat_part1 = 1
+    resultat_part2 = 0
+
+    segons_part2 = ""
+    metres_part2 = ""
+
+    while(cont < len(list_races_seconds)):
+        carrera = 0
+        for elem in range(list_races_seconds[cont]+1):
+            if(elem*(list_races_seconds[cont]-elem) > list_races_records[cont]):
+                carrera = carrera + 1
+        segons_part2 = segons_part2+str(list_races_seconds[cont])
+        metres_part2 = metres_part2 + str(list_races_records[cont])
+        resultat_part1 = resultat_part1 * carrera
+        cont = cont + 1
+
+    for elem in range(int(segons_part2) + 1):
+        if (elem * (int(segons_part2) - elem) > int(metres_part2)):
+            resultat_part2 = resultat_part2 + 1
+
+    print("The result of the part 1 of the puzzle 6 is: "+str(resultat_part1))
+    print("The result of the part 2 of the puzzle 6 is: " + str(resultat_part2))
+
 if __name__ == '__main__':
     puzz = input("Which puzzle do you want to solve?(1-25): ")
     if(puzz == "1"):
@@ -309,3 +348,6 @@ if __name__ == '__main__':
                 else:
                     if (puzz == "5"):
                         puzzle5()
+                    else:
+                        if (puzz == "6"):
+                            puzzle6()
