@@ -1,6 +1,6 @@
 import re
 from typing import Tuple, List, Optional
-import math
+
 
 def matrix_initializer(f):
     row = []
@@ -332,22 +332,139 @@ def puzzle6():
     print("The result of the part 1 of the puzzle 6 is: "+str(resultat_part1))
     print("The result of the part 2 of the puzzle 6 is: " + str(resultat_part2))
 
-if __name__ == '__main__':
-    puzz = input("Which puzzle do you want to solve?(1-25): ")
-    if(puzz == "1"):
-        puzzle1()
-    else:
-        if(puzz == "2"):
-            puzzle2()
+def strength_part1(hand, cardValues):
+    value = ""
+    x = set(hand)
+    match len(x):
+        case 1:
+            value += "6"
+        case 2:
+            cards = list(hand)
+            for card in x:
+                cards.remove(card)
+            if len(set(cards)) == 1:
+                value += "5"
+            elif len(set(cards)) == 2:
+                value += "4"
+            else: print("oh no case 2")
+        case 3:
+            cards = list(hand)
+            for card in x:
+                cards.remove(card)
+            if len(set(cards)) == 1:
+                value += "3"
+            elif len(set(cards)) == 2:
+                value += "2"
+            else: print("oh no case 3")
+        case 4:
+            value += "1"
+        case 5:
+            pass
+    for char in hand:
+        value += cardValues[char]
+    return int(value)
+
+def puzzle7_part1():
+    cardValues = {"A": "14", "K": "13", "Q": "12", "J": "11", "T": "10", "9": "09", "8": "08", "7": "07", "6": "06",
+                  "5": "05", "4": "04", "3": "03", "2": "02"}
+    path = "puzzle7"
+    f = open(path, "r")
+    total = 0
+    info = {}  # 1hand,2bet,3strength
+    for line in f:
+        line = line.split()
+        if not strength_part1(line[0],cardValues) in info:
+            info[strength_part1(line[0],cardValues)] = int(line[1])
         else:
-            if (puzz == "3"):
-                puzzle3()
+            info[strength_part1(line[0],cardValues)] += int(line[1])
+    sortie = sorted(info)
+    for i, j in enumerate(sortie, 1):
+        total += info[j] * i
+    print("Result of part1 puzzle7: "+str(total))
+
+def strength_part2(hand, cardValues):
+    value = ""
+    x = set(hand)
+    if "J" in x:
+        x.remove("J")
+    match len(x):
+        case 0:value+="6"
+        case 1:
+            value += "6"
+        case 2:
+            cards = list(hand)
+            for j in cards[:]:
+                if j == "J":
+                    cards.remove("J")
+            for card in x:
+                cards.remove(card)
+            if len(set(cards)) <= 1:
+                value += "5"
+            elif len(set(cards)) == 2:
+                value += "4"
+
+        case 3:
+            cards = list(hand)
+            for j in cards[:]:
+                if j == "J":
+                    cards.remove("J")
+            for card in x:
+                cards.remove(card)
+            if len(set(cards)) <= 1:
+                value += "3"
+            elif len(set(cards)) == 2:
+                value += "2"
+            else: print("oh no case 3",set(cards),hand)
+        case 4:
+            value += "1"
+        case 5:
+            pass
+    for char in hand:
+        value += cardValues[char]
+    return int(value)
+def puzzle7_part2():
+    cardValues = {"A": "14", "K": "13", "Q": "12", "J": "00", "T": "10", "9": "09", "8": "08", "7": "07", "6": "06",
+                  "5": "05", "4": "04", "3": "03", "2": "02"}
+    path = "puzzle7"
+    f = open(path, "r")
+    total = 0
+    info = {}  # 1hand,2bet,3strength
+    for line in f:
+        line = line.split()
+        if not strength_part2(line[0], cardValues) in info:
+            info[strength_part2(line[0],cardValues)] = int(line[1])
+        else:
+            info[strength_part2(line[0],cardValues)] += int(line[1])
+    sortie = sorted(info)
+    for i, j in enumerate(sortie, 1):
+        total += info[j] * i
+    print("Result of part2 puzzle7: "+str(total))
+def puzzle7():
+    puzzle7_part1()
+    puzzle7_part2()
+
+if __name__ == '__main__':
+    bucle = "S"
+    while(bucle == "S"):
+        puzz = input("Which puzzle do you want to solve?(1-25): ")
+        if(puzz == "1"):
+            puzzle1()
+        else:
+            if(puzz == "2"):
+                puzzle2()
             else:
-                if (puzz == "4"):
-                    puzzle4()
+                if (puzz == "3"):
+                    puzzle3()
                 else:
-                    if (puzz == "5"):
-                        puzzle5()
+                    if (puzz == "4"):
+                        puzzle4()
                     else:
-                        if (puzz == "6"):
-                            puzzle6()
+                        if (puzz == "5"):
+                            puzzle5()
+                        else:
+                            if (puzz == "6"):
+                                puzzle6()
+                            else:
+                                if (puzz == "7"):
+                                    puzzle7()
+        bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
