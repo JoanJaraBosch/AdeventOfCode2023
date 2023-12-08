@@ -1,4 +1,4 @@
-import re
+import re, math
 from typing import Tuple, List, Optional
 
 
@@ -443,6 +443,54 @@ def puzzle7():
     puzzle7_part1()
     puzzle7_part2()
 
+def get_stuff(content) -> tuple[str, dict[str, tuple[str, str]]]:
+    [dirs, lookup_str] = content.split('\n\n', 1)
+    dirs = dirs.strip()
+    lookup = {}
+    for lookup_ln in lookup_str.split('\n'):
+        for c in '()=,':
+            lookup_ln = lookup_ln.replace(c, '')
+        [key, left, right] = lookup_ln.split(maxsplit=2)
+        lookup[key] = (left, right)
+    return (dirs, lookup)
+
+def puzzle_8_part_1(content, dir_map):
+    dirs, lookup = get_stuff(content)
+    current = 'AAA'
+    steps = 0
+    while current != 'ZZZ':
+        current_dir = dirs[steps % len(dirs)]
+        current = lookup[current][dir_map[current_dir]]
+        steps += 1
+    print(steps)
+
+def puzzle_8_part_2_helper(start: 'str', dirs: str, lookup: dict[str, tuple[str, str]], dir_map) -> int:
+    steps = 0
+    current = start
+    while current[-1] != 'Z':
+        current_dir = dirs[steps % len(dirs)]
+        current = lookup[current][dir_map[current_dir]]
+        steps += 1
+    return(steps)
+
+def puzzle_8_part_2(content, dir_map):
+    step_ls = []
+    dirs, lookup = get_stuff(content)
+    for loc in lookup:
+        if loc[-1] == 'A':
+            step_ls.append(puzzle_8_part_2_helper(loc, dirs, lookup, dir_map))
+    print(math.lcm(*step_ls))
+
+def puzzle8():
+    content = open('puzzle8').read()
+    dir_map = {
+        'L': 0,
+        'R': 1,
+    }
+
+    puzzle_8_part_1(content, dir_map)
+    puzzle_8_part_2(content, dir_map)
+
 if __name__ == '__main__':
     bucle = "S"
     while(bucle == "S"):
@@ -467,4 +515,7 @@ if __name__ == '__main__':
                             else:
                                 if (puzz == "7"):
                                     puzzle7()
+                                else:
+                                    if (puzz == "8"):
+                                        puzzle8()
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
