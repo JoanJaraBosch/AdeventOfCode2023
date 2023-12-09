@@ -491,31 +491,71 @@ def puzzle8():
     puzzle_8_part_1(content, dir_map)
     puzzle_8_part_2(content, dir_map)
 
+def all_zeros(list):
+    for l in list:
+        if(l != 0):
+            return True
+    return  False
+
+def sum_values(list_of_lists):
+    result = 0
+    for list in list_of_lists:
+        result = result + list[-1]
+    return result
+
+def sub_values(list_of_lists):
+    result = 0
+    for list in reversed(list_of_lists):
+        result = list[0] - result
+    return result
+
+def puzzle9_helper(line, part):
+    result = [line]
+    seguir_bucle = True
+    while(seguir_bucle):
+        result_aux = []
+        cont = 0
+        while(cont < len(line)-1):
+            result_aux.append(int(line[cont+1])-int(line[cont]))
+            cont = cont + 1
+        result.append(result_aux)
+        seguir_bucle = all_zeros(result_aux)
+        line = result_aux
+    if(part == "1"):
+        return sum_values(result)
+    else:
+        return sub_values(result)
+
+def puzzle9():
+    content = open('puzzle9').readlines()
+    #content = open('test_puzzle_9').readlines()
+    part = puzz = input("Which part do you want to solve?(1-2): ")
+    result_part = 0
+    for line in content:
+        result_part = result_part + puzzle9_helper(list(map(int,line.strip().split())),part)
+
+    print("The result of the part"+str(part)+" of the puzzle 9 is: "+str(result_part))
+
 if __name__ == '__main__':
     bucle = "S"
     while(bucle == "S"):
         puzz = input("Which puzzle do you want to solve?(1-25): ")
         if(puzz == "1"):
             puzzle1()
-        else:
-            if(puzz == "2"):
-                puzzle2()
-            else:
-                if (puzz == "3"):
-                    puzzle3()
-                else:
-                    if (puzz == "4"):
-                        puzzle4()
-                    else:
-                        if (puzz == "5"):
-                            puzzle5()
-                        else:
-                            if (puzz == "6"):
-                                puzzle6()
-                            else:
-                                if (puzz == "7"):
-                                    puzzle7()
-                                else:
-                                    if (puzz == "8"):
-                                        puzzle8()
+        elif(puzz == "2"):
+            puzzle2()
+        elif (puzz == "3"):
+            puzzle3()
+        elif (puzz == "4"):
+            puzzle4()
+        elif (puzz == "5"):
+            puzzle5()
+        elif (puzz == "6"):
+            puzzle6()
+        elif (puzz == "7"):
+            puzzle7()
+        elif (puzz == "8"):
+            puzzle8()
+        elif (puzz == "9"):
+            puzzle9()
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
