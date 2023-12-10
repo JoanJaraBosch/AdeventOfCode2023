@@ -117,7 +117,7 @@ def part2(seeds, maps):
     return next_seeds[0][0]
 
 def puzzle1():
-    f = open("puzzle1", "r")
+    f = open("inputs/puzzle1", "r")
     cont=0
     part = input("Which part of the puzzle you want to solve? (1/2): ")
     if(part == "1"):
@@ -161,7 +161,7 @@ def puzzle2():
     cont=1 #id game
     result_part1= 0
     result_part2 = 0
-    f = open("puzzle2", "r").readlines()
+    f = open("inputs/puzzle2", "r").readlines()
     part = input("Which part of the puzzle you want to solve? (1/2): ")
     if(part == "1"):
         for l in f:
@@ -207,7 +207,7 @@ def puzzle2():
 
 
 def puzzle3():
-    with open("puzzle3") as f:
+    with open("inputs/puzzle3") as f:
         input = [line.strip() for line in f.readlines()]
 
     symbols = []
@@ -248,7 +248,7 @@ def puzzle3():
     print(sum(gear_ratios))
 
 def puzzle4():
-    lines = open("puzzle4").readlines()
+    lines = open("inputs/puzzle4").readlines()
 
     part1 = 0
     matching_nums = []
@@ -270,7 +270,7 @@ def puzzle4():
     print("Part 2 puzzle 4 result is: " + str(result_part2))
 
 def puzzle5():
-    file_name = "puzzle5"
+    file_name = "inputs/puzzle5"
 
     maps = {}
 
@@ -295,7 +295,7 @@ def puzzle5():
     print("PART2 OF DAY 5 IS: "+str(part2(seeds, maps)))
 
 def puzzle6():
-    lines = open("puzzle6").readlines()
+    lines = open("inputs/puzzle6").readlines()
     list_races_seconds = []
     list_races_records = []
     cont = 1
@@ -367,7 +367,7 @@ def strength_part1(hand, cardValues):
 def puzzle7_part1():
     cardValues = {"A": "14", "K": "13", "Q": "12", "J": "11", "T": "10", "9": "09", "8": "08", "7": "07", "6": "06",
                   "5": "05", "4": "04", "3": "03", "2": "02"}
-    path = "puzzle7"
+    path = "inputs/puzzle7"
     f = open(path, "r")
     total = 0
     info = {}  # 1hand,2bet,3strength
@@ -425,7 +425,7 @@ def strength_part2(hand, cardValues):
 def puzzle7_part2():
     cardValues = {"A": "14", "K": "13", "Q": "12", "J": "00", "T": "10", "9": "09", "8": "08", "7": "07", "6": "06",
                   "5": "05", "4": "04", "3": "03", "2": "02"}
-    path = "puzzle7"
+    path = "inputs/puzzle7"
     f = open(path, "r")
     total = 0
     info = {}  # 1hand,2bet,3strength
@@ -482,7 +482,7 @@ def puzzle_8_part_2(content, dir_map):
     print(math.lcm(*step_ls))
 
 def puzzle8():
-    content = open('puzzle8').read()
+    content = open('inputs/puzzle8').read()
     dir_map = {
         'L': 0,
         'R': 1,
@@ -527,14 +527,171 @@ def puzzle9_helper(line, part):
         return sub_values(result)
 
 def puzzle9():
-    content = open('puzzle9').readlines()
-    #content = open('test_puzzle_9').readlines()
+    content = open('inputs/puzzle9').readlines()
     part = puzz = input("Which part do you want to solve?(1-2): ")
     result_part = 0
     for line in content:
         result_part = result_part + puzzle9_helper(list(map(int,line.strip().split())),part)
 
     print("The result of the part"+str(part)+" of the puzzle 9 is: "+str(result_part))
+
+def starting_position(mapa):
+    i = 0
+    for row in mapa:
+        j = 0
+        for element in row:
+            if(element == "S"):
+                return str(i)+"-"+str(j)
+            j = j +1
+        i = i +1
+
+def keep(mapa):
+    values_possible = "0123456789."
+    for row in mapa:
+        for element in row:
+            if(element not in values_possible):
+                return True
+    return False
+
+def transform_seven_into_T(mapa):
+    i = 0
+    for row in mapa:
+        j = 0
+        for element in row:
+            if(element == "7"):
+                mapa[i][j] = "T"
+            j = j + 1
+        i = i + 1
+    return mapa
+
+def shoelace(points):
+    area = 0
+
+    X = [point[0] for point in points] + [points[0][0]]
+    Y = [point[1] for point in points] + [points[0][1]]
+
+    for i in range(len(points)):
+        area += X[i] * Y[i + 1] - Y[i] * X[i + 1]
+
+    return abs(area) / 2
+
+def puzzle10_part1(lines):
+    # up, down, right, left
+    steps = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+    # (from): (to)
+    pipes = {
+        "|": {(1, 0): (1, 0), (-1, 0): (-1, 0)},
+        "-": {(0, 1): (0, 1), (0, -1): (0, -1)},
+        "L": {(1, 0): (0, 1), (0, -1): (-1, 0)},
+        "J": {(0, 1): (-1, 0), (1, 0): (0, -1)},
+        "F": {(-1, 0): (0, 1), (0, -1): (1, 0)},
+        "7": {(0, 1): (1, 0), (-1, 0): (0, -1)},
+    }
+
+    # create the map
+    M = []
+    for r, line in enumerate(lines):
+        row = []
+        for c, char in enumerate(line):
+            row.append(char)
+            if char == "S":
+                r0, c0 = r, c
+        M.append(row)
+
+    A = 0
+    for dr, dc in steps:
+        r, c = r0 + dr, c0 + dc
+        l = 1  # the length of the path
+
+        while M[r][c] != "S":
+            l += 1
+
+            if not -1 < r < len(M) and -1 < c < len(M[r]):
+                break  # out of bounds
+
+            if not M[r][c] in pipes:
+                break  # not a pipe
+
+            pipe = pipes[M[r][c]]
+            if not (dr, dc) in pipe:
+                break  # pipes don't join up
+
+            dr, dc = pipe[(dr, dc)]
+            r, c = r + dr, c + dc
+
+        if M[r][c] == "S":
+            A = l // 2
+            return int(A)
+
+def puzzle10_part2(lines):
+    # up, down, right, left
+    steps = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+
+    # (from): (to)
+    pipes = {
+        "|": {(1, 0): (1, 0), (-1, 0): (-1, 0)},
+        "-": {(0, 1): (0, 1), (0, -1): (0, -1)},
+        "L": {(1, 0): (0, 1), (0, -1): (-1, 0)},
+        "J": {(0, 1): (-1, 0), (1, 0): (0, -1)},
+        "F": {(-1, 0): (0, 1), (0, -1): (1, 0)},
+        "7": {(0, 1): (1, 0), (-1, 0): (0, -1)},
+    }
+
+    bends = ["L", "J", "F", "7"]
+
+    # create the map
+    M = []
+    for r, line in enumerate(lines):
+        row = []
+        for c, char in enumerate(line):
+            row.append(char)
+            if char == "S":
+                r0, c0 = r, c
+        M.append(row)
+
+    for dr, dc in steps:
+        r, c = r0 + dr, c0 + dc
+        V = [(r0, c0)]  # track vertices
+        b = 1  # count boundary points
+
+        while M[r][c] != "S":
+            b += 1
+            if M[r][c] in bends:
+                V.append((r, c))
+
+            if not -1 < r < len(M) and -1 < c < len(M[r]):
+                break  # out of bounds
+
+            if not M[r][c] in pipes:
+                break  # not a pipe
+
+            pipe = pipes[M[r][c]]
+            if not (dr, dc) in pipe:
+                break  # pipes don't join up
+
+            dr, dc = pipe[(dr, dc)]
+            r, c = r + dr, c + dc
+
+        if M[r][c] == "S":
+            break
+
+    A = shoelace(V)  # area
+
+    # pick's theorem
+    return int(A + 1 - b / 2)
+
+def puzzle10():
+    lines = open('inputs/puzzle10').readlines()
+    part = input("Which part do you want to solve?(1-2): ")
+
+    sol = 0
+
+    if(part == "1"):
+        sol = puzzle10_part1(lines)
+    else:
+        sol = puzzle10_part2(lines)
+    print("The result of the part"+str(part)+" of the puzzle 10 is: "+str(sol))
 
 if __name__ == '__main__':
     bucle = "S"
@@ -558,4 +715,6 @@ if __name__ == '__main__':
             puzzle8()
         elif (puzz == "9"):
             puzzle9()
+        elif (puzz == "10"):
+            puzzle10()
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
