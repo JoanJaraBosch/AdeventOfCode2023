@@ -693,6 +693,101 @@ def puzzle10():
         sol = puzzle10_part2(lines)
     print("The result of the part"+str(part)+" of the puzzle 10 is: "+str(sol))
 
+def ini_universe(lines):
+    result = []
+    for line in lines:
+        aux_row = []
+        for letter in line.strip():
+            if(letter != "\n"):
+                aux_row.append(letter)
+        result.append(aux_row)
+        if("#" not in line):
+            result.append(line.split())
+    A = zip(*result)
+    positions_col = []
+    #check for colums to duplicate
+    j = 0
+    for column in A:
+        if("#" not in column):
+            positions_col.append(j)
+        j = j + 1
+
+    result_real = []
+    i = 0
+    for row in result:
+        j = 0
+        row_aux = []
+        for elem in row:
+            row_aux.append(elem)
+            if(j in positions_col):
+                row_aux.append(elem)
+            j = j + 1
+        result_real.append(row_aux)
+        i = i + 1
+    return result_real
+
+def sum_distances(map, posX, posY):
+    result = 0
+    i = posX
+    j = posY
+    while(i < len(map)):
+        while(j < len(map[i])):
+            if(map[i][j] == "#"):
+                result = result + abs(posX - i) + abs(posY - j)
+            j = j + 1
+        j = 0
+        i = i + 1
+    return result
+
+def puzzle11_part1(lines):
+    map = ini_universe(lines)
+    print(map)
+    posX = 0
+    result = 0
+    for row in map:
+        posY = 0
+        for ele in row:
+            if(ele == "#"):
+                result = result + sum_distances(map, posX, posY)
+            posY = posY + 1
+        posX = posX + 1
+
+    return result
+
+def puzzle11():
+    with open("inputs/puzzle11", "r") as f:
+        data = f.read().splitlines()
+        rows = []
+        cols = []
+        galaxies = []
+        for y, row in enumerate(data):
+            if not '#' in row:
+                rows.append(y)
+                continue
+            for x, c in enumerate(row):
+                if c == '#':
+                    galaxies.append((x, y))
+        for x, _ in enumerate(data[0]):
+            if not '#' in [row[x] for _, row in enumerate(data)]:
+                cols.append(x)
+
+        short = long = 0
+        for k, galaxy in enumerate(galaxies):
+            for n in range(k + 1, len(galaxies)):
+                y = (min(galaxies[n][0], galaxy[0]), max(galaxies[n][0], galaxy[0]))
+                x = (min(galaxies[n][1], galaxy[1]), max(galaxies[n][1], galaxy[1]))
+
+                short += y[1] - y[0] + x[1] - x[0]
+                short += sum(1 for e in cols if e in range(y[0], y[1]))
+                short += sum(1 for e in rows if e in range(x[0], x[1]))
+
+                long += y[1] - y[0] + x[1] - x[0]
+                long += sum(999999 for e in cols if e in range(y[0], y[1]))
+                long += sum(999999 for e in rows if e in range(x[0], x[1]))
+
+        print(f"Part 1: {short}")
+        print(f"Part 2: {long}")
+
 if __name__ == '__main__':
     bucle = "S"
     while(bucle == "S"):
@@ -717,4 +812,6 @@ if __name__ == '__main__':
             puzzle9()
         elif (puzz == "10"):
             puzzle10()
+        elif (puzz == "11"):
+            puzzle11()
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
