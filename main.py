@@ -1,4 +1,4 @@
-import re, math
+import re, math, functools
 from typing import Tuple, List, Optional
 
 
@@ -788,6 +788,46 @@ def puzzle11():
         print(f"Part 1: {short}")
         print(f"Part 2: {long}")
 
+
+@functools.cache
+def puzzle_12_helper(pattern, size, splits):
+    a = splits[0]
+    rest = splits[1:]
+    after = sum(rest) + len(rest)
+
+    count = 0
+
+    for before in range(size - after - a + 1):
+        if all(c in '#?' for c in pattern[before:before + a]):
+            if len(rest) == 0:
+                if all(c in '.?' for c in pattern[before + a:]):
+                    count += 1
+            elif pattern[before + a] in '.?':
+                count += puzzle_12_helper(pattern[before + a + 1:],
+                                       size - a - before - 1,
+                                       rest)
+
+        if pattern[before] not in '.?':
+            break
+
+    return count
+
+def puzzle12():
+    lines = open('inputs/puzzle12').readlines()
+    part = input("Which part do you want to solve?(1-/2): ")
+    result = 0
+    for l in lines:
+        pattern, splits = l.split()
+        if(part == "1"):
+            pattern = '?'.join((pattern,))
+            splits = tuple(map(int, splits.split(',')))
+            result = result + puzzle_12_helper(pattern, len(pattern), tuple(splits))
+        elif(part == "2"):
+                pattern = '?'.join((pattern,)*5)
+                splits = tuple(map(int, splits.split(',')))*5
+                result = result + puzzle_12_helper(pattern, len(pattern), tuple(splits))
+    print("The solution for the puzzle 12 part"+part+"is: "+str(result))
+
 if __name__ == '__main__':
     bucle = "S"
     while(bucle == "S"):
@@ -814,4 +854,6 @@ if __name__ == '__main__':
             puzzle10()
         elif (puzz == "11"):
             puzzle11()
+        elif (puzz == "12"):
+            puzzle12()
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
