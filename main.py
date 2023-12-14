@@ -1,4 +1,5 @@
 import re, math, functools
+from itertools import chain
 from typing import Tuple, List, Optional
 
 
@@ -828,6 +829,77 @@ def puzzle12():
                 result = result + puzzle_12_helper(pattern, len(pattern), tuple(splits))
     print("The solution for the puzzle 12 part"+part+"is: "+str(result))
 
+# extract a single string from arbitrarily nested lists of strings
+def collapse(l):
+    return ''.join(chain.from_iterable(l))
+
+# check if 2 grids differ by exactly 1 character
+def smudgeEqual(a,b):
+    count = 0
+    for i,j in zip(collapse(a),collapse(b)):
+        count += (i != j)
+        if count > 1:
+            return False
+    if count == 1:
+        return True
+    return False
+
+def checkVerticalReflections(grid, part):
+    if(part==1):
+        for i in [i + 1 for i in range(len(grid[0]) - 1)]:
+            reflection = flipVertical([''.join(r[:i]) for r in grid])
+            a = min(i, len(grid[0]) - i)
+            if [''.join(r[:a]) for r in reflection] == [''.join(r[i:i + a]) for r in grid]:
+                return i
+        return 0
+    else:
+        for i in [i + 1 for i in range(len(grid[0]) - 1)]:
+            reflection = flipVertical([''.join(r[:i]) for r in grid])
+            a = min(i, len(grid[0]) - i)
+            if smudgeEqual([''.join(r[:a]) for r in reflection], [''.join(r[i:i + a]) for r in grid]):
+                return i
+        return 0
+
+def checkHorizontalReflections(grid, part):
+    if(part == 1):
+        for i in [i + 1 for i in range(len(grid) - 1)]:
+            reflection = flipHorizontal(grid[:i])
+            a = min(i, len(grid) - i)
+            if reflection[:a] == grid[i:i + a]:
+                return 100 * i
+        return 0
+    else:
+        for i in [i + 1 for i in range(len(grid) - 1)]:
+            reflection = flipHorizontal(grid[:i])
+            a = min(i, len(grid) - i)
+            if smudgeEqual(reflection[:a], grid[i:i + a]):
+                return 100 * i
+        return 0
+
+# reflect grid over a vertical line
+def flipVertical(grid):
+    return [''.join(r[::-1]) for r in grid]
+
+# reflect grid over a horizontal line
+def flipHorizontal(grid):
+    return grid[::-1]
+
+def puzzle13_helper(grids , part):
+    summaries = []
+    for item in grids:
+        grid = item.split('\n')
+        summaries.append(checkVerticalReflections(grid, part))
+        summaries.append(checkHorizontalReflections(grid, part))
+
+    return sum(summaries)
+
+def puzzle13():
+    file = open('inputs/puzzle13', 'r')
+    input = file.read()
+    grids = input.split('\n\n')
+    print("The vaue for puzzle13 part1 is: "+str(puzzle13_helper(grids, 1)))
+    print("The vaue for puzzle13 part2 is: "+str(puzzle13_helper(grids, 2)))
+
 if __name__ == '__main__':
     bucle = "S"
     while(bucle == "S"):
@@ -856,4 +928,6 @@ if __name__ == '__main__':
             puzzle11()
         elif (puzz == "12"):
             puzzle12()
+        elif (puzz == "13"):
+            puzzle13()
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
