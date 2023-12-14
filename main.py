@@ -900,6 +900,89 @@ def puzzle13():
     print("The vaue for puzzle13 part1 is: "+str(puzzle13_helper(grids, 1)))
     print("The vaue for puzzle13 part2 is: "+str(puzzle13_helper(grids, 2)))
 
+def spin_north(data, m, n):
+    ndata = [['.'] * n for _ in range(m)]
+    for j in range(n):
+        to_place = 0
+        for i in range(m):
+            if data[i][j] == '#':
+                ndata[i][j] = '#'
+                to_place = i + 1
+            elif data[i][j] == 'O':
+                ndata[to_place][j] = 'O'
+                to_place += 1
+    return ndata
+
+def spin_west(data, m, n):
+    ndata = [['.'] * n for _ in range(m)]
+    for i in range(m):
+        to_place = 0
+        for j in range(n):
+            if data[i][j] == '#':
+                ndata[i][j] = '#'
+                to_place = j + 1
+            elif data[i][j] == 'O':
+                ndata[i][to_place] = 'O'
+                to_place += 1
+    return ndata
+
+def spin_south(data, m, n):
+    ndata = [['.'] * n for _ in range(m)]
+    for j in range(n):
+        to_place = m - 1
+        for i in reversed(range(m) ):
+            if data[i][j] == '#':
+                ndata[i][j] = '#'
+                to_place = i - 1
+            elif data[i][j] == 'O':
+                ndata[to_place][j] = 'O'
+                to_place -= 1
+    return ndata
+
+def spin_east(data, m, n):
+    ndata = [['.'] * n for _ in range(m)]
+    for i in range(m):
+        to_place = n - 1
+        for j in reversed(range(n) ):
+            if data[i][j] == '#':
+                ndata[i][j] = '#'
+                to_place = j - 1
+            elif data[i][j] == 'O':
+                ndata[i][to_place] = 'O'
+                to_place -= 1
+    return ndata
+
+def puzzle14():
+    data = open('inputs/puzzle14', 'r').read().strip().split('\n')
+    data = list(list(x) for x in data)
+    m, n = len(data), len(data[0])
+    ndata = spin_north(data, m, n)
+    print("Puzzle 14 Part 1:", sum((m - i) for i in range(m) for j in range(n) if ndata[i][j] == 'O'))
+    TIMES = 10 ** 9
+    ndata, recur = data[:], {}
+    for x in range(TIMES):
+        # spin a cycle
+        ndata = spin_north(ndata, m, n)
+        ndata = spin_west(ndata, m, n)
+        ndata = spin_south(ndata, m, n)
+        ndata = spin_east(ndata, m, n)
+
+        tuple_data = tuple(tuple(x) for x in ndata)
+        if tuple_data in recur:
+            diff = x - recur[tuple_data]
+            TIMES = (TIMES - x) % diff - 1
+            break
+        recur[tuple_data] = x
+
+    for x in range(TIMES):
+        # spin a cycle
+        ndata = spin_north(ndata, m, n)
+        ndata = spin_west(ndata, m, n)
+        ndata = spin_south(ndata, m, n)
+        ndata = spin_east(ndata, m, n)
+
+    print("Part 2:", sum((m - i) for i in range(m) for j in range(n) if ndata[i][j] == 'O'))
+
 if __name__ == '__main__':
     bucle = "S"
     while(bucle == "S"):
@@ -930,4 +1013,6 @@ if __name__ == '__main__':
             puzzle12()
         elif (puzz == "13"):
             puzzle13()
+        elif (puzz == "14"):
+            puzzle14()
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
