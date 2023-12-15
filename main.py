@@ -1,4 +1,5 @@
 import re, math, functools
+from collections import defaultdict
 from itertools import chain
 from typing import Tuple, List, Optional
 
@@ -983,6 +984,54 @@ def puzzle14():
 
     print("Part 2:", sum((m - i) for i in range(m) for j in range(n) if ndata[i][j] == 'O'))
 
+def hash_puzzl15(word):
+    current_value = 0
+    for letter in word:
+        current_value = ((current_value + ord(letter))*17) % 256
+    return  current_value
+
+def power_puzzl15(hashmap: dict[int, list[dict[str, int]]]) -> int:
+    total = 0
+    for box_no, box in hashmap.items():
+        for slot, lens in enumerate(box):
+            total += (box_no + 1) * (slot + 1) * lens[list(lens.keys())[0]]
+    return total
+
+def puzzle15():
+    data = open('inputs/puzzle15', 'r').read().strip().split(',')
+    result_part1 = 0
+    hashmap: dict[int, list[dict[str, int]]] = {key: [] for key in range(256)}
+
+    for word in data:
+        word = word.replace("\n", "").strip()
+        if word[-1].isdigit():
+            focal_length = int(word[-1])
+            label = word[:-2]
+            hash = hash_puzzl15(label)
+            box = hashmap[hash]
+            if len(box) != 0:
+                labels = list({k: None for lens in box for k in lens.keys()}.keys())
+                if label in labels:
+                    idx = labels.index(label)
+                    box[idx][label] = focal_length
+                else:
+                    box.append({label: focal_length})
+            else:
+                box.append({label: focal_length})
+        else:
+            label = word[:-1]
+            hash = hash_puzzl15(label)
+            box = hashmap[hash]
+            labels = list({k: None for lens in box for k in lens.keys()}.keys())
+            if label in labels:
+                del box[labels.index(label)]
+        result_part1 = result_part1 + hash_puzzl15(word)
+
+    result_part2 = power_puzzl15(hashmap)
+
+    print("The result of the puzzle 15 part 1 is: "+str(result_part1))
+    print("The result of the puzzle 15 part 2 is: "+str(result_part2))
+
 if __name__ == '__main__':
     bucle = "S"
     while(bucle == "S"):
@@ -1015,4 +1064,6 @@ if __name__ == '__main__':
             puzzle13()
         elif (puzz == "14"):
             puzzle14()
+        elif (puzz == "15"):
+            puzzle15()
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
