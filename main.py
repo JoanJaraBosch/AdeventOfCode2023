@@ -2,6 +2,8 @@ import re, math, functools
 from collections import deque
 from itertools import chain
 from typing import Tuple, List, Optional
+from heapq import heappush, heappop
+from math import inf
 
 
 def matrix_initializer(f):
@@ -1231,6 +1233,48 @@ def puzzle16():
     puzzle16_part1()
     puzzle16_part2()
 
+def puzzle17_helper(parts: str, mmin: int, mmax: int):
+    legal_moves = {(0, 0): ((1, 0), (0, 1)),
+                   (0, -1): ((1, 0), (-1, 0)),
+                   (1, 0): ((0, -1), (0, 1)),
+                   (0, 1): ((1, 0), (-1, 0)),
+                   (-1, 0): ((0, -1), (0, 1))}
+
+    with open('inputs/puzzle17') as f:
+        grid = [[int(x) for x in line] for line in f.read().splitlines()]
+    destination_coord = (len(grid[0]) - 1, len(grid) - 1)
+    heap = [(0, (0, 0), (0, 0))]
+    heat_map = {(0, 0): 0}
+    visited = set()
+
+    while heap:
+        heat_loss, coord, direction = heappop(heap)
+
+        if coord == destination_coord:
+            break
+
+        if (coord, direction) in visited: continue
+
+        visited.add((coord, direction))
+
+        for new_direction in legal_moves[direction]:
+            new_heat_loss = heat_loss
+            for steps in range(1, mmax + 1):
+                new_coord = (coord[0] + steps * new_direction[0], coord[1] + steps * new_direction[1])
+                if new_coord[0] < 0 or new_coord[1] < 0 \
+                        or new_coord[0] > destination_coord[0] or new_coord[1] > destination_coord[1]:
+                    continue
+                new_heat_loss = new_heat_loss + grid[new_coord[1]][new_coord[0]]
+                if steps >= mmin:
+                    new_node = (new_coord, new_direction)
+                    if heat_map.get(new_node, inf) <= new_heat_loss: continue
+                    heat_map[new_node] = new_heat_loss
+                    heappush(heap, (new_heat_loss, new_coord, new_direction))
+    print(parts, heat_loss)
+def puzzle17():
+    puzzle17_helper("Solution puzzle17 Part 1:", 1, 3)
+    puzzle17_helper("Solution puzzle17 Part 2:", 4, 10)
+
 if __name__ == '__main__':
     bucle = "S"
     while(bucle == "S"):
@@ -1267,4 +1311,6 @@ if __name__ == '__main__':
             puzzle15()
         elif (puzz == "16"):
             puzzle16()
+        elif (puzz == "17"):
+            puzzle17()
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
