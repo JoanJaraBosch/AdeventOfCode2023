@@ -4,7 +4,7 @@ from itertools import chain
 from typing import Tuple, List, Optional
 from heapq import heappush, heappop
 from math import inf
-
+from typing import NamedTuple
 
 def matrix_initializer(f):
     row = []
@@ -1271,9 +1271,58 @@ def puzzle17_helper(parts: str, mmin: int, mmax: int):
                     heat_map[new_node] = new_heat_loss
                     heappush(heap, (new_heat_loss, new_coord, new_direction))
     print(parts, heat_loss)
+
 def puzzle17():
     puzzle17_helper("Solution puzzle17 Part 1:", 1, 3)
     puzzle17_helper("Solution puzzle17 Part 2:", 4, 10)
+
+def puzzle18():
+    y1, x1 = 0, 0
+    y2, x2 = 0, 0
+    vertices1 = []
+    vertices2 = []
+    perimeter1 = 0
+    perimeter2 = 0
+
+    with open("inputs/puzzle18") as file:
+        for row in file:
+            dir1, n1, p2instr = row.split()
+            n1 = int(n1)
+            dir2 = p2instr[-2]
+            n2 = int(p2instr[2:-2], 16)
+
+            vertices1.append((y1, x1))
+            perimeter1 += n1
+            if dir1 == "U":
+                y1 -= n1
+            elif dir1 == "R":
+                x1 += n1
+            elif dir1 == "D":
+                y1 += n1
+            elif dir1 == "L":
+                x1 -= n1
+
+            vertices2.append((y2, x2))
+            perimeter2 += n2
+            if dir2 == "3":
+                y2 -= n2
+            elif dir2 == "0":
+                x2 += n2
+            elif dir2 == "1":
+                y2 += n2
+            elif dir2 == "2":
+                x2 -= n2
+
+    area1, area2 = 0, 0
+    for i, (y, x) in enumerate(vertices1):
+        y2, x2 = vertices1[(i + 1) % len(vertices1)]
+        area1 += x * y2 - x2 * y
+    for i, (y, x) in enumerate(vertices2):
+        y2, x2 = vertices2[(i + 1) % len(vertices2)]
+        area2 += x * y2 - x2 * y
+
+    print(area1 // 2 + perimeter1 // 2 + 1)
+    print(area2 // 2 + perimeter2 // 2 + 1)
 
 if __name__ == '__main__':
     bucle = "S"
@@ -1313,4 +1362,6 @@ if __name__ == '__main__':
             puzzle16()
         elif (puzz == "17"):
             puzzle17()
+        elif (puzz == "18"):
+            puzzle18()
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
