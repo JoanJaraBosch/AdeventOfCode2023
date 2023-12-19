@@ -1,10 +1,10 @@
-import re, math, functools
+import collections
+import re, math, functools, operator
 from collections import deque
 from itertools import chain
 from typing import Tuple, List, Optional
 from heapq import heappush, heappop
 from math import inf
-from typing import NamedTuple
 
 def matrix_initializer(f):
     row = []
@@ -1324,44 +1324,138 @@ def puzzle18():
     print(area1 // 2 + perimeter1 // 2 + 1)
     print(area2 // 2 + perimeter2 // 2 + 1)
 
+def build_single_workflow_puzzle19(line, Condition, XMAS):
+    conds = []
+    for entry in line.split(","):
+        if ":" in entry:
+            xmas, op, n, res = re.search(r"(\w)([<>])(\d+):(\w+)", entry).groups()
+            conds.append(Condition(XMAS[xmas], op, int(n), res))
+        else:
+            conds.append(Condition(None, None, None, entry))
+    return conds
+
+def parse_puzzle19(text, Condition, XMAS):
+    workflows, parts = {}, []
+
+    for l in text.split("\n\n")[0].split("\n"):
+        label, l_text = l.split("{")
+        workflows[label] = build_single_workflow_puzzle19(l_text[:-1], Condition, XMAS)
+
+    for l in text.split("\n\n")[1].split("\n"):
+        parts.append(tuple(map(int, re.findall("\d+", l))))
+
+    return workflows, parts
+
+def process_single_part_workflow_puzzle19(workflow, part):
+    loc = "in"
+    while loc not in "AR":
+        for cond in workflow:
+            if not cond.op:
+                return cond.result
+            else:
+                op = operator.lt if cond.op == "<" else operator.gt
+                if op(part[cond.xmas], cond.n):
+                    return cond.result
+
+def puzzle19_part1(workflows, parts):
+    accepted = []
+    for part in parts:
+        loc = "in"
+        while loc not in "AR":
+            loc = process_single_part_workflow_puzzle19(workflows[loc], part)
+        accepted.append(part) if loc == "A" else None
+    print(sum(sum(a) for a in accepted))
+
+def split_gaggle_puzzle19(gg, xmas, n):
+    a = tuple((g[0], g[1]) if xmas != i else (g[0], n - 1) for i, g in enumerate(gg))
+    b = tuple((g[0], g[1]) if xmas != i else (n, g[1]) for i, g in enumerate(gg))
+    return a, b
+
+def process_puzzle19(workflow, gaggle, is_empty_gaggle):
+    to_enqueue = []
+    for cond in workflow:
+        if is_empty_gaggle(gaggle):
+            continue
+        elif not cond.op:
+            to_enqueue.append((cond.result, gaggle))
+        else:
+            xmas, op, n, result = cond
+            if op == "<":
+                a, b = split_gaggle_puzzle19(gaggle, xmas, n)
+                if not is_empty_gaggle(a):
+                    to_enqueue.append((result, a))
+                gaggle = b
+            else:
+                a, b = split_gaggle_puzzle19(gaggle, xmas, n + 1)
+                if not is_empty_gaggle(b):
+                    to_enqueue.append((result, b))
+                gaggle = a
+    return to_enqueue
+
+def puzzle19_part2(workflows, is_empty_gaggle):
+    accepted = 0
+    q = [("in", ((1, 4000), (1, 4000), (1, 4000), (1, 4000)))]
+    while q:
+        wf_label, gaggle = q.pop()
+        if wf_label == "A":
+            accepted += math.prod(g[1] - g[0] + 1 for g in gaggle)
+        elif wf_label != "R":
+            q.extend(process_puzzle19(workflows[wf_label], gaggle, is_empty_gaggle))
+    print(accepted)
+
+def puzzle19():
+    XMAS = {"x": 0, "m": 1, "a": 2, "s": 3}
+    Condition = collections.namedtuple("Condition", ("xmas", "op", "n", "result"))
+    is_empty_gaggle = lambda g: any(x[1] < x[0] for x in g)
+    workflows, parts = parse_puzzle19(open("inputs/puzzle19").read(), Condition, XMAS)
+    puzzle19_part1(workflows, parts)
+    puzzle19_part2(workflows, is_empty_gaggle)
+
+    return 0
+
+def menu(puzz):
+    if (puzz == "1"):
+        puzzle1()
+    elif (puzz == "2"):
+        puzzle2()
+    elif (puzz == "3"):
+        puzzle3()
+    elif (puzz == "4"):
+        puzzle4()
+    elif (puzz == "5"):
+        puzzle5()
+    elif (puzz == "6"):
+        puzzle6()
+    elif (puzz == "7"):
+        puzzle7()
+    elif (puzz == "8"):
+        puzzle8()
+    elif (puzz == "9"):
+        puzzle9()
+    elif (puzz == "10"):
+        puzzle10()
+    elif (puzz == "11"):
+        puzzle11()
+    elif (puzz == "12"):
+        puzzle12()
+    elif (puzz == "13"):
+        puzzle13()
+    elif (puzz == "14"):
+        puzzle14()
+    elif (puzz == "15"):
+        puzzle15()
+    elif (puzz == "16"):
+        puzzle16()
+    elif (puzz == "17"):
+        puzzle17()
+    elif (puzz == "18"):
+        puzzle18()
+    elif (puzz == "19"):
+        puzzle19()
+
 if __name__ == '__main__':
     bucle = "S"
     while(bucle == "S"):
         puzz = input("Which puzzle do you want to solve?(1-25): ")
-        if(puzz == "1"):
-            puzzle1()
-        elif(puzz == "2"):
-            puzzle2()
-        elif (puzz == "3"):
-            puzzle3()
-        elif (puzz == "4"):
-            puzzle4()
-        elif (puzz == "5"):
-            puzzle5()
-        elif (puzz == "6"):
-            puzzle6()
-        elif (puzz == "7"):
-            puzzle7()
-        elif (puzz == "8"):
-            puzzle8()
-        elif (puzz == "9"):
-            puzzle9()
-        elif (puzz == "10"):
-            puzzle10()
-        elif (puzz == "11"):
-            puzzle11()
-        elif (puzz == "12"):
-            puzzle12()
-        elif (puzz == "13"):
-            puzzle13()
-        elif (puzz == "14"):
-            puzzle14()
-        elif (puzz == "15"):
-            puzzle15()
-        elif (puzz == "16"):
-            puzzle16()
-        elif (puzz == "17"):
-            puzzle17()
-        elif (puzz == "18"):
-            puzzle18()
+        menu(puzz)
         bucle = input("Do you want to solve another puzzle? (s/n): ").upper()
