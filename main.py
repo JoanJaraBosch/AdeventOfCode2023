@@ -1411,7 +1411,151 @@ def puzzle19():
     puzzle19_part1(workflows, parts)
     puzzle19_part2(workflows, is_empty_gaggle)
 
-    return 0
+def read_lines_to_list(FILE) -> List[str]:
+    lines: List[str] = []
+    with open(FILE, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            split = line.split(" -> ")
+
+            name = split[0]
+            flip_flop = name.startswith("%")
+            conjunction = name.startswith("&")
+            target = split[1].split(", ")
+
+            if flip_flop:
+                state = False
+                name = split[0][1:]
+            elif conjunction:
+                state = {}
+                name = split[0][1:]
+            else:
+                state = None
+
+            val = (name, [target, flip_flop, conjunction, state])
+
+            lines.append(val)
+
+    return lines
+
+def puzzle20_part1(FILE):
+    lines = read_lines_to_list(FILE)
+    mappings = dict((a, b) for (a, b) in lines)
+
+    # For any conjunction modules we must initialize inputs...
+    for k, v in mappings.items():
+        if v[2]:
+            for a, b in mappings.items():
+                if k in b[0]:
+                    v[3][a] = False
+
+    low = 0
+    high = 0
+    for _ in range(1000):
+        queue = [("broadcaster", 0, None)]
+        while queue:
+            (curr, signal, input) = queue.pop(0)
+
+            if signal:
+                high += 1
+            else:
+                low += 1
+
+            if curr not in mappings:
+                continue
+
+            [targets, is_ff, is_con, state] = mappings[curr]
+
+            if is_ff:
+                if not signal:
+                    if state:
+                        mappings[curr][3] = False
+                        new_signal = 0
+                    else:
+                        mappings[curr][3] = True
+                        new_signal = 1
+
+                    for target in targets:
+                        queue.append((target, new_signal, curr))
+            elif is_con:
+                state[input] = bool(signal)
+                if all(state.values()):
+                    new_signal = 0
+                else:
+                    new_signal = 1
+                for target in targets:
+                    queue.append((target, new_signal, curr))
+            else:
+                for target in targets:
+                    queue.append((target, signal, curr))
+
+    answer = low * high
+    print(f"Puzzle 20 part 1: {answer}")
+
+
+def puzzle20_part2(FILE):
+    m = {}
+    f = {}
+    c = {}
+    for l in open(FILE, "r").readlines():
+        s, *d = l.replace(',', '').replace("->", "").split()
+        t = None
+        if s != "broadcaster":
+            t = s[0]
+            s = s[1:]
+        m[s] = (t, d)
+        f[s] = "off"
+        for o in d:
+            if o not in c:
+                c[o] = {}
+            c[o][s] = "low"
+        if d == ['rx']:
+            r = s
+
+    b = 0
+    l = {k: 0 for k in c[r]}
+    while True:
+        b += 1
+        q = [("button", "broadcaster", "low")]
+        while q:
+            i, n, p = q.pop(0)
+            if n not in m:
+                continue
+            t, d = m[n]
+            if t == None:
+                for o in d:
+                    q.append((n, o, p))
+            elif t == '%':
+                if p == "low":
+                    s = f[n]
+                    if s == "off":
+                        f[n] = "on"
+                        for o in d:
+                            q.append((n, o, "high"))
+                    else:
+                        f[n] = "off"
+                        for o in d:
+                            q.append((n, o, "low"))
+            elif t == '&':
+                c[n][i] = p
+                if all(v == "high" for v in c[n].values()):
+                    for o in d:
+                        q.append((n, o, "low"))
+                else:
+                    for o in d:
+                        q.append((n, o, "high"))
+                if n == r:
+                    for k, v in c[n].items():
+                        if v == "high" and l[k] == 0:
+                            l[k] = b
+        if all(v > 0 for v in l.values()):
+            print(f"Puzzle 20 part 2: {functools.reduce((lambda a, b: a * b), l.values())}")
+            break
+
+def puzzle20():
+    FILE = "inputs/puzzle20"
+    puzzle20_part1(FILE)
+    puzzle20_part2(FILE)
 
 def menu(puzz):
     if (puzz == "1"):
@@ -1452,6 +1596,8 @@ def menu(puzz):
         puzzle18()
     elif (puzz == "19"):
         puzzle19()
+    elif (puzz == "20"):
+        puzzle20()
 
 if __name__ == '__main__':
     bucle = "S"
