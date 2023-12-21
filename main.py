@@ -5,7 +5,29 @@ from itertools import chain
 from typing import Tuple, List, Optional
 from heapq import heappush, heappop
 from math import inf
+import numpy as np
 
+P = complex
+class Grid:
+	def __init__(self, input):
+		self.size = len(input.splitlines())
+		self.grid = set()
+		self.positions = set()
+		for y, l in enumerate(input.splitlines()):
+			for x, v in enumerate(l):
+				if v == '#':
+					self.grid.add(P(x,y))
+				if v == 'S':
+					self.positions.add(P(x,y))
+	def step(self):
+		newPos = set()
+		for p in self.positions:
+			for d in (1,-1,1j,-1j):
+				if self.wrap(p+d) not in self.grid:
+					newPos.add(p+d)
+		self.positions = newPos
+	def wrap(self, p):
+		return P(p.real%self.size, p.imag%self.size)
 def matrix_initializer(f):
     row = []
     matrix = []
@@ -1557,6 +1579,113 @@ def puzzle20():
     puzzle20_part1(FILE)
     puzzle20_part2(FILE)
 
+def find_garden_x(matrix):
+    posX = []
+    cont_i = 0
+    for row in matrix:
+        for l in row:
+            if(l.upper() == "O"):
+                posX.append(cont_i)
+        cont_i = cont_i + 1
+    return posX
+
+def find_garden_y(matrix):
+    posY = []
+    for row in matrix:
+        cont_j = 0
+        for l in row:
+            if (l.upper() == "O"):
+                posY.append(cont_j)
+            cont_j = cont_j + 1
+    return posY
+
+def steps_garden(matrix, starting_x, starting_y):
+    matrix[starting_x][starting_y] = "."
+    if (starting_x - 1 > -1 and matrix[starting_x - 1][starting_y] == '.'):
+        matrix[starting_x - 1][starting_y] = "O"
+
+    if (starting_y - 1 > -1 and matrix[starting_x][starting_y - 1] == '.'):
+        matrix[starting_x][starting_y - 1] = "O"
+
+    if (starting_x + 1 < len(matrix) and matrix[starting_x + 1][starting_y] == '.'):
+        matrix[starting_x + 1][starting_y] = "O"
+
+    if (starting_y + 1 < len(matrix[starting_x]) and matrix[starting_x][starting_y + 1] == '.'):
+        matrix[starting_x][starting_y + 1] = "O"
+    for i in range(63):
+        positionX = find_garden_x(matrix)
+        positionY = find_garden_y(matrix)
+        for x, y in zip(positionX, positionY):
+            matrix[x][y] = "."
+        for x, y in zip(positionX, positionY):
+            if (x - 1 > -1 and matrix[x - 1][y] == '.'):
+                matrix[x - 1][y] = "O"
+
+            if (y - 1 > -1 and matrix[x][y - 1] == '.'):
+                matrix[x][y - 1] = "O"
+
+            if (x + 1 < len(matrix) and matrix[x + 1][y] == '.'):
+                matrix[x + 1][y] = "O"
+
+            if (y + 1 < len(matrix[x]) and matrix[x][y + 1] == '.'):
+                matrix[x][y + 1] = "O"
+
+    cont = 0
+    for row in matrix:
+        for l in row:
+            if(l.upper() == "O"):
+                cont = cont + 1
+
+    print_garden(matrix)
+    return cont
+
+def print_garden(matrix):
+    f = open("puzzle21.out", "w")
+    for row in matrix:
+        for l in row:
+            f.write(l)
+        f.write("\n")
+    f.close()
+def puzzle21_part1_input():
+    matrix = []
+    staring_x = 0
+    starting_y = 0
+    cont_i = 0
+    cont_j = 0
+    for row in open("inputs/puzzle21", "r").readlines():
+        array_row = []
+        cont_j = 0
+        for position in row.replace("\n", ""):
+            if (position.upper() == "S"):
+                starting_y = cont_j
+                starting_x = cont_i
+            array_row.append(position)
+            cont_j = cont_j + 1
+        matrix.append(array_row)
+        cont_i = cont_i + 1
+    return matrix, starting_x, starting_y
+
+def steps_garden_2(input):
+    g = Grid(input)
+    # f(x) = how many squares are visited at time 65 + 131*x
+    X, Y = [0, 1, 2], []
+    target = (26501365 - 65) // 131
+    for s in range(65 + 131 * 2 + 1):
+        if s % 131 == 65:
+            Y.append(len(g.positions))
+        if s == 64:
+            p1 = len(g.positions)
+        g.step()
+    poly = np.rint(np.polynomial.polynomial.polyfit(X, Y, 2)).astype(int).tolist()
+    return sum(poly[i] * target ** i for i in range(3))
+
+def puzzle21():
+    matrix, starting_x, starting_y = puzzle21_part1_input()
+    steps = steps_garden(matrix, starting_x, starting_y)
+    steps2 = steps_garden_2(open("inputs/puzzle21", "r").read())
+    print(f"Puzzle21, part1 solution is: {steps}")
+    print(f"Puzzle21, part2 solution is: {steps2}")
+
 def menu(puzz):
     if (puzz == "1"):
         puzzle1()
@@ -1598,6 +1727,8 @@ def menu(puzz):
         puzzle19()
     elif (puzz == "20"):
         puzzle20()
+    elif (puzz == "21"):
+        puzzle21()
 
 if __name__ == '__main__':
     bucle = "S"
