@@ -1,4 +1,5 @@
 import collections
+import collections as C
 import re, math, functools, operator
 from collections import deque
 from itertools import chain
@@ -1686,6 +1687,31 @@ def puzzle21():
     print(f"Puzzle21, part1 solution is: {steps}")
     print(f"Puzzle21, part2 solution is: {steps2}")
 
+def drop_puzzle22(stack, skip=None):
+    peaks = C.defaultdict(int)
+    falls = 0
+
+    for i, (u, v, w, x, y, z) in enumerate(stack):
+        if i == skip: continue
+
+        area = [(a, b) for a in range(u, x + 1)
+                for b in range(v, y + 1)]
+        peak = max(peaks[a] for a in area) + 1
+        for a in area: peaks[a] = peak + z - w
+
+        stack[i] = (u, v, peak, x, y, peak + z - w)
+        falls += peak < w
+
+    return not falls, falls
+
+def puzzle22():
+    stack = sorted([[*map(int, re.findall(r'\d+', l))]
+                    for l in open('inputs/puzzle22')], key=lambda b: b[2])
+
+    drop_puzzle22(stack)
+    print(*map(sum, zip(*[drop_puzzle22(stack.copy(), skip=i)
+                          for i in range(len(stack))])))
+
 def menu(puzz):
     if (puzz == "1"):
         puzzle1()
@@ -1729,6 +1755,8 @@ def menu(puzz):
         puzzle20()
     elif (puzz == "21"):
         puzzle21()
+    elif (puzz == "22"):
+        puzzle22()
 
 if __name__ == '__main__':
     bucle = "S"
