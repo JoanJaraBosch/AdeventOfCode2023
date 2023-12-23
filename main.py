@@ -1,12 +1,76 @@
 import collections
 import collections as C
 import re, math, functools, operator
+import sys
 from collections import deque
 from itertools import chain
 from typing import Tuple, List, Optional
 from heapq import heappush, heappop
 from math import inf
 import numpy as np
+
+def solve_puzzle23(part1):
+    D = open("inputs/puzzle23").read().strip()
+    L = D.split('\n')
+    G = [[c for c in row] for row in L]
+    R = len(G)
+    C = len(G[0])
+    sys.setrecursionlimit(10 ** 6)
+    V = set()
+    for r in range(R):
+        for c in range(C):
+          nbr = 0
+          for ch,dr,dc in [['^',-1,0],['v', 1,0],['<', 0,-1],['>',0,1]]:
+            if (0<=r+dr<R and 0<=c+dc<C and G[r+dr][c+dc]!='#'):
+              nbr += 1
+          if nbr>2 and G[r][c]!='#':
+            V.add((r,c))
+    for c in range(C):
+        if G[0][c]=='.':
+          V.add((0,c))
+          start = (0,c)
+        if G[R-1][c]=='.':
+          V.add((R-1,c))
+          end = (R-1,c)
+
+    E = {}
+    for (rv,cv) in V:
+        E[(rv,cv)] = []
+        Q = deque([(rv,cv,0)])
+        SEEN = set()
+        while Q:
+          r,c,d = Q.popleft()
+          if (r,c) in SEEN:
+            continue
+          SEEN.add((r,c))
+          if (r,c) in V and (r,c) != (rv,cv):
+            E[(rv,cv)].append(((r,c),d))
+            continue
+          for ch,dr,dc in [['^',-1,0],['v', 1,0],['<', 0,-1],['>',0,1]]:
+            if (0<=r+dr<R and 0<=c+dc<C and G[r+dr][c+dc]!='#'):
+              if part1 and G[r][c] in ['<', '>', '^', 'v'] and G[r][c]!=ch:
+                continue
+              Q.append((r+dr,c+dc,d+1))
+    count = 0
+    ans = 0
+    SEEN = [[False for _ in range(C)] for _ in range(R)]
+    seen = set()
+    def dfs(v,d):
+        nonlocal count
+        nonlocal ans
+        count += 1
+        r,c = v
+        if SEEN[r][c]:
+          return
+        SEEN[r][c] = True
+        if r==R-1:
+          ans = max(ans, d)
+        for (y,yd) in E[v]:
+          dfs(y,d+yd)
+        SEEN[r][c] = False
+    dfs(start,0)
+    #print(count)
+    return ans
 
 P = complex
 class Grid:
@@ -45,7 +109,6 @@ class RangeMap(object):
         self.sources = []
         self.destinations = []
         self.lengths = []
-
     def __getitem__(self, key: int):
         for i, s in enumerate(self.sources):
             if s <= key and s + self.lengths[i] > key:
@@ -81,7 +144,6 @@ class RangeMap(object):
             # print(start, length, source, self.destinations[i], self.lengths[i], v)
             mapped_range.append((d, l))
             source_range.append((s, l))
-
         source_range.sort()
         c_start = start
         for (s, l) in source_range:
@@ -91,12 +153,10 @@ class RangeMap(object):
         if c_start < start + length:
             mapped_range.append((c_start, start + length - c_start))
         return sorted(mapped_range)
-
     def add_range(self, source: int, destination: int, length: int):
         self.sources.append(source)
         self.destinations.append(destination)
         self.lengths.append(length)
-
     def __repr__(self):
         return str([self.sources, self.destinations, self.lengths])
 
@@ -152,7 +212,6 @@ def puzzle1():
         for lines in f.readlines():
             numbers = re.findall(r'\d+', lines)
             number=0
-
             if(len(numbers)<2):
                 number = int(numbers[0][0]+numbers[0][-1])
             else:
@@ -179,7 +238,6 @@ def puzzle1():
                 number = int(numbers[0]+numbers[0])
             else:
                 number = int(numbers[0] + numbers[-1])
-
             cont=cont+number
         print("Solution part2- Puzzle1 is: " + str(cont))
 
@@ -232,11 +290,9 @@ def puzzle2():
             result_part2 = result_part2 + (max_blue*max_red*max_green)
         print("The result of the Puzzle 2 part 2 is: " + str(result_part2))
 
-
 def puzzle3():
     with open("inputs/puzzle3") as f:
         input = [line.strip() for line in f.readlines()]
-
     symbols = []
     numbers = []
     gears = []
@@ -244,13 +300,11 @@ def puzzle3():
         symbols.append(list(re.finditer(r"[^0-9.\s]", line)))
         numbers.append(list(re.finditer(r"[0-9]+", line)))
         gears.append(list(re.finditer(r"\*", line)))
-
     parts = []
     gear_ratios = []
     for i in range(len(input)):
         before = i - 1 if i >= 1 else None
         after = i + 1 if i < len(input) - 1 else None
-
         for s in symbols[i]:
             for n in numbers[i]:
                 parts.append(int(n.group())) if s.end() >= n.start() and n.end() >= s.start() else None
@@ -268,7 +322,6 @@ def puzzle3():
                 __gear_parts.append(int(n.group())) if g.end() >= n.start() and n.end() >= g.start() else None
             if (len(__gear_parts) == 2):
                 gear_ratios.append(__gear_parts[0] * __gear_parts[1])
-
     print("------ part number sums -------")
     print(sum(parts))
     print("------ gear ratio sums --------")
@@ -276,7 +329,6 @@ def puzzle3():
 
 def puzzle4():
     lines = open("inputs/puzzle4").readlines()
-
     part1 = 0
     matching_nums = []
     for i, line in enumerate(lines):
@@ -286,7 +338,6 @@ def puzzle4():
         matching_nums.append(len(winning_nums.intersection(nums_i_have)))
         part1 += int(2 ** (matching_nums[i] - 1))
     print("Part 2 puzzle 4 result is: " +str(part1))
-
     scratchcard_nums = {i: 1 for i in range(1, len(lines) + 1)}
     result_part2 = 0
     for i in range(1, len(lines) + 1):
@@ -298,9 +349,7 @@ def puzzle4():
 
 def puzzle5():
     file_name = "inputs/puzzle5"
-
     maps = {}
-
     with open(file_name, "r") as f:
         seeds = parse_seeds(f.readline())
 
@@ -334,14 +383,11 @@ def puzzle6():
             for meters in line.split(":")[1].strip().split():
                 list_races_records.append(int(meters.strip()))
         cont = cont + 1
-
     cont = 0
     resultat_part1 = 1
     resultat_part2 = 0
-
     segons_part2 = ""
     metres_part2 = ""
-
     while(cont < len(list_races_seconds)):
         carrera = 0
         for elem in range(list_races_seconds[cont]+1):
@@ -351,11 +397,9 @@ def puzzle6():
         metres_part2 = metres_part2 + str(list_races_records[cont])
         resultat_part1 = resultat_part1 * carrera
         cont = cont + 1
-
     for elem in range(int(segons_part2) + 1):
         if (elem * (int(segons_part2) - elem) > int(metres_part2)):
             resultat_part2 = resultat_part2 + 1
-
     print("The result of the part 1 of the puzzle 6 is: "+str(resultat_part1))
     print("The result of the part 2 of the puzzle 6 is: " + str(resultat_part2))
 
@@ -429,7 +473,6 @@ def strength_part2(hand, cardValues):
                 value += "5"
             elif len(set(cards)) == 2:
                 value += "4"
-
         case 3:
             cards = list(hand)
             for j in cards[:]:
@@ -514,7 +557,6 @@ def puzzle8():
         'L': 0,
         'R': 1,
     }
-
     puzzle_8_part_1(content, dir_map)
     puzzle_8_part_2(content, dir_map)
 
@@ -593,19 +635,15 @@ def transform_seven_into_T(mapa):
 
 def shoelace(points):
     area = 0
-
     X = [point[0] for point in points] + [points[0][0]]
     Y = [point[1] for point in points] + [points[0][1]]
-
     for i in range(len(points)):
         area += X[i] * Y[i + 1] - Y[i] * X[i + 1]
-
     return abs(area) / 2
 
 def puzzle10_part1(lines):
     # up, down, right, left
     steps = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-
     # (from): (to)
     pipes = {
         "|": {(1, 0): (1, 0), (-1, 0): (-1, 0)},
@@ -615,7 +653,6 @@ def puzzle10_part1(lines):
         "F": {(-1, 0): (0, 1), (0, -1): (1, 0)},
         "7": {(0, 1): (1, 0), (-1, 0): (0, -1)},
     }
-
     # create the map
     M = []
     for r, line in enumerate(lines):
@@ -625,28 +662,21 @@ def puzzle10_part1(lines):
             if char == "S":
                 r0, c0 = r, c
         M.append(row)
-
     A = 0
     for dr, dc in steps:
         r, c = r0 + dr, c0 + dc
         l = 1  # the length of the path
-
         while M[r][c] != "S":
             l += 1
-
             if not -1 < r < len(M) and -1 < c < len(M[r]):
                 break  # out of bounds
-
             if not M[r][c] in pipes:
                 break  # not a pipe
-
             pipe = pipes[M[r][c]]
             if not (dr, dc) in pipe:
                 break  # pipes don't join up
-
             dr, dc = pipe[(dr, dc)]
             r, c = r + dr, c + dc
-
         if M[r][c] == "S":
             A = l // 2
             return int(A)
@@ -654,7 +684,6 @@ def puzzle10_part1(lines):
 def puzzle10_part2(lines):
     # up, down, right, left
     steps = [(1, 0), (-1, 0), (0, 1), (0, -1)]
-
     # (from): (to)
     pipes = {
         "|": {(1, 0): (1, 0), (-1, 0): (-1, 0)},
@@ -664,9 +693,7 @@ def puzzle10_part2(lines):
         "F": {(-1, 0): (0, 1), (0, -1): (1, 0)},
         "7": {(0, 1): (1, 0), (-1, 0): (0, -1)},
     }
-
     bends = ["L", "J", "F", "7"]
-
     # create the map
     M = []
     for r, line in enumerate(lines):
@@ -676,44 +703,33 @@ def puzzle10_part2(lines):
             if char == "S":
                 r0, c0 = r, c
         M.append(row)
-
     for dr, dc in steps:
         r, c = r0 + dr, c0 + dc
         V = [(r0, c0)]  # track vertices
         b = 1  # count boundary points
-
         while M[r][c] != "S":
             b += 1
             if M[r][c] in bends:
                 V.append((r, c))
-
             if not -1 < r < len(M) and -1 < c < len(M[r]):
                 break  # out of bounds
-
             if not M[r][c] in pipes:
                 break  # not a pipe
-
             pipe = pipes[M[r][c]]
             if not (dr, dc) in pipe:
                 break  # pipes don't join up
-
             dr, dc = pipe[(dr, dc)]
             r, c = r + dr, c + dc
-
         if M[r][c] == "S":
             break
-
     A = shoelace(V)  # area
-
     # pick's theorem
     return int(A + 1 - b / 2)
 
 def puzzle10():
     lines = open('inputs/puzzle10').readlines()
     part = input("Which part do you want to solve?(1-2): ")
-
     sol = 0
-
     if(part == "1"):
         sol = puzzle10_part1(lines)
     else:
@@ -738,7 +754,6 @@ def ini_universe(lines):
         if("#" not in column):
             positions_col.append(j)
         j = j + 1
-
     result_real = []
     i = 0
     for row in result:
@@ -778,7 +793,6 @@ def puzzle11_part1(lines):
                 result = result + sum_distances(map, posX, posY)
             posY = posY + 1
         posX = posX + 1
-
     return result
 
 def puzzle11():
@@ -797,21 +811,17 @@ def puzzle11():
         for x, _ in enumerate(data[0]):
             if not '#' in [row[x] for _, row in enumerate(data)]:
                 cols.append(x)
-
         short = long = 0
         for k, galaxy in enumerate(galaxies):
             for n in range(k + 1, len(galaxies)):
                 y = (min(galaxies[n][0], galaxy[0]), max(galaxies[n][0], galaxy[0]))
                 x = (min(galaxies[n][1], galaxy[1]), max(galaxies[n][1], galaxy[1]))
-
                 short += y[1] - y[0] + x[1] - x[0]
                 short += sum(1 for e in cols if e in range(y[0], y[1]))
                 short += sum(1 for e in rows if e in range(x[0], x[1]))
-
                 long += y[1] - y[0] + x[1] - x[0]
                 long += sum(999999 for e in cols if e in range(y[0], y[1]))
                 long += sum(999999 for e in rows if e in range(x[0], x[1]))
-
         print(f"Part 1: {short}")
         print(f"Part 2: {long}")
 
@@ -821,9 +831,7 @@ def puzzle_12_helper(pattern, size, splits):
     a = splits[0]
     rest = splits[1:]
     after = sum(rest) + len(rest)
-
     count = 0
-
     for before in range(size - after - a + 1):
         if all(c in '#?' for c in pattern[before:before + a]):
             if len(rest) == 0:
@@ -833,10 +841,8 @@ def puzzle_12_helper(pattern, size, splits):
                 count += puzzle_12_helper(pattern[before + a + 1:],
                                        size - a - before - 1,
                                        rest)
-
         if pattern[before] not in '.?':
             break
-
     return count
 
 def puzzle12():
@@ -916,7 +922,6 @@ def puzzle13_helper(grids , part):
         grid = item.split('\n')
         summaries.append(checkVerticalReflections(grid, part))
         summaries.append(checkHorizontalReflections(grid, part))
-
     return sum(summaries)
 
 def puzzle13():
@@ -992,21 +997,18 @@ def puzzle14():
         ndata = spin_west(ndata, m, n)
         ndata = spin_south(ndata, m, n)
         ndata = spin_east(ndata, m, n)
-
         tuple_data = tuple(tuple(x) for x in ndata)
         if tuple_data in recur:
             diff = x - recur[tuple_data]
             TIMES = (TIMES - x) % diff - 1
             break
         recur[tuple_data] = x
-
     for x in range(TIMES):
         # spin a cycle
         ndata = spin_north(ndata, m, n)
         ndata = spin_west(ndata, m, n)
         ndata = spin_south(ndata, m, n)
         ndata = spin_east(ndata, m, n)
-
     print("Part 2:", sum((m - i) for i in range(m) for j in range(n) if ndata[i][j] == 'O'))
 
 def hash_puzzl15(word):
@@ -1026,7 +1028,6 @@ def puzzle15():
     data = open('inputs/puzzle15', 'r').read().strip().split(',')
     result_part1 = 0
     hashmap: dict[int, list[dict[str, int]]] = {key: [] for key in range(256)}
-
     for word in data:
         word = word.replace("\n", "").strip()
         if word[-1].isdigit():
@@ -1051,9 +1052,7 @@ def puzzle15():
             if label in labels:
                 del box[labels.index(label)]
         result_part1 = result_part1 + hash_puzzl15(word)
-
     result_part2 = power_puzzl15(hashmap)
-
     print("The result of the puzzle 15 part 1 is: "+str(result_part1))
     print("The result of the puzzle 15 part 2 is: "+str(result_part2))
 
@@ -1061,14 +1060,12 @@ def puzzle15():
 def parse_input_file():
     with open('inputs/puzzle16', 'r') as f:
         file = f.read()
-
     matrix = []
     for y, line in enumerate(file.split('\n')):
         matrix_y = []
         for symbol in list(line):
             matrix_y.append(symbol)
         matrix.append(matrix_y)
-
     return matrix
 
 def next_state(current_state, dir):
@@ -1076,7 +1073,6 @@ def next_state(current_state, dir):
     DOWN = 'down'
     LEFT = 'left'
     RIGHT = 'right'
-
     DIR_TO_COORD = {
         UP: (0, -1),
         DOWN: (0, 1),
@@ -1104,31 +1100,22 @@ def puzzle16_part1():
     DOWN = 'down'
     LEFT = 'left'
     RIGHT = 'right'
-
     global L, visited_states
     matrix = parse_input_file()  # matrix[y][x] ∈ {.,|,-,/,\}
     L = len(matrix)
-
     visited_tiles = set()  # set of visited tiles (x, y)
     visited_states = set()  # set of visited states ((x, y), dir)
-
     s0 = ((0, 0), RIGHT)  # initial state
-
     queue = deque()
     queue.append(s0)
-
     while queue:
         s = queue.popleft()
-
         if (not is_valid(s)):
             continue
-
         (x, y), dir = s
         visited_states.add(s)
         visited_tiles.add((x, y))
-
         symbol = matrix[y][x]
-
         # NOTE: bad
         match symbol:
             case '.':
@@ -1167,7 +1154,6 @@ def puzzle16_part1():
                     case 'left' | 'right':
                         queue.append(next_state(s, UP))
                         queue.append(next_state(s, DOWN))
-
     # Part 1
     print("Puzzle 16 result for part 1 is: "+str(len(visited_tiles)))
 
@@ -1179,36 +1165,26 @@ def puzzle16_part2():
     global L, visited_states
     matrix = parse_input_file()  # matrix[y][x] ∈ {.,|,-,/,\}
     L = len(matrix)
-
     max_val = 0
-
     initial_states = set()
     initial_states.update([((x, 0), DOWN) for x in range(L)])
     initial_states.update([((x, L - 1), UP) for x in range(L)])
     initial_states.update([((0, y), RIGHT) for y in range(L)])
     initial_states.update([((L - 1, y), LEFT) for y in range(L)])
-
     for initial_state in initial_states:
         visited_tiles = set()  # set of visited tiles (x, y)
         visited_states = set()  # set of visited states ((x, y), dir)
-
         s0 = initial_state
-
         queue = deque()
         queue.append(s0)
-
         while queue:
             s = queue.popleft()
-
             if (not is_valid(s)):
                 continue
-
             (x, y), dir = s
             visited_states.add(s)
             visited_tiles.add((x, y))
-
             symbol = matrix[y][x]
-
             # NOTE: bad
             match symbol:
                 case '.':
@@ -1247,11 +1223,10 @@ def puzzle16_part2():
                         case 'left' | 'right':
                             queue.append(next_state(s, UP))
                             queue.append(next_state(s, DOWN))
-
         max_val = max(max_val, len(visited_tiles))
-
     # Part 2
     print("Puzzle16 result for part2 is: "+str(max_val))
+
 def puzzle16():
     puzzle16_part1()
     puzzle16_part2()
@@ -1262,24 +1237,18 @@ def puzzle17_helper(parts: str, mmin: int, mmax: int):
                    (1, 0): ((0, -1), (0, 1)),
                    (0, 1): ((1, 0), (-1, 0)),
                    (-1, 0): ((0, -1), (0, 1))}
-
     with open('inputs/puzzle17') as f:
         grid = [[int(x) for x in line] for line in f.read().splitlines()]
     destination_coord = (len(grid[0]) - 1, len(grid) - 1)
     heap = [(0, (0, 0), (0, 0))]
     heat_map = {(0, 0): 0}
     visited = set()
-
     while heap:
         heat_loss, coord, direction = heappop(heap)
-
         if coord == destination_coord:
             break
-
         if (coord, direction) in visited: continue
-
         visited.add((coord, direction))
-
         for new_direction in legal_moves[direction]:
             new_heat_loss = heat_loss
             for steps in range(1, mmax + 1):
@@ -1306,14 +1275,12 @@ def puzzle18():
     vertices2 = []
     perimeter1 = 0
     perimeter2 = 0
-
     with open("inputs/puzzle18") as file:
         for row in file:
             dir1, n1, p2instr = row.split()
             n1 = int(n1)
             dir2 = p2instr[-2]
             n2 = int(p2instr[2:-2], 16)
-
             vertices1.append((y1, x1))
             perimeter1 += n1
             if dir1 == "U":
@@ -1324,7 +1291,6 @@ def puzzle18():
                 y1 += n1
             elif dir1 == "L":
                 x1 -= n1
-
             vertices2.append((y2, x2))
             perimeter2 += n2
             if dir2 == "3":
@@ -1335,7 +1301,6 @@ def puzzle18():
                 y2 += n2
             elif dir2 == "2":
                 x2 -= n2
-
     area1, area2 = 0, 0
     for i, (y, x) in enumerate(vertices1):
         y2, x2 = vertices1[(i + 1) % len(vertices1)]
@@ -1343,7 +1308,6 @@ def puzzle18():
     for i, (y, x) in enumerate(vertices2):
         y2, x2 = vertices2[(i + 1) % len(vertices2)]
         area2 += x * y2 - x2 * y
-
     print(area1 // 2 + perimeter1 // 2 + 1)
     print(area2 // 2 + perimeter2 // 2 + 1)
 
@@ -1359,14 +1323,11 @@ def build_single_workflow_puzzle19(line, Condition, XMAS):
 
 def parse_puzzle19(text, Condition, XMAS):
     workflows, parts = {}, []
-
     for l in text.split("\n\n")[0].split("\n"):
         label, l_text = l.split("{")
         workflows[label] = build_single_workflow_puzzle19(l_text[:-1], Condition, XMAS)
-
     for l in text.split("\n\n")[1].split("\n"):
         parts.append(tuple(map(int, re.findall("\d+", l))))
-
     return workflows, parts
 
 def process_single_part_workflow_puzzle19(workflow, part):
@@ -1440,12 +1401,10 @@ def read_lines_to_list(FILE) -> List[str]:
         for line in f:
             line = line.strip()
             split = line.split(" -> ")
-
             name = split[0]
             flip_flop = name.startswith("%")
             conjunction = name.startswith("&")
             target = split[1].split(", ")
-
             if flip_flop:
                 state = False
                 name = split[0][1:]
@@ -1454,41 +1413,32 @@ def read_lines_to_list(FILE) -> List[str]:
                 name = split[0][1:]
             else:
                 state = None
-
             val = (name, [target, flip_flop, conjunction, state])
-
             lines.append(val)
-
     return lines
 
 def puzzle20_part1(FILE):
     lines = read_lines_to_list(FILE)
     mappings = dict((a, b) for (a, b) in lines)
-
     # For any conjunction modules we must initialize inputs...
     for k, v in mappings.items():
         if v[2]:
             for a, b in mappings.items():
                 if k in b[0]:
                     v[3][a] = False
-
     low = 0
     high = 0
     for _ in range(1000):
         queue = [("broadcaster", 0, None)]
         while queue:
             (curr, signal, input) = queue.pop(0)
-
             if signal:
                 high += 1
             else:
                 low += 1
-
             if curr not in mappings:
                 continue
-
             [targets, is_ff, is_con, state] = mappings[curr]
-
             if is_ff:
                 if not signal:
                     if state:
@@ -1497,7 +1447,6 @@ def puzzle20_part1(FILE):
                     else:
                         mappings[curr][3] = True
                         new_signal = 1
-
                     for target in targets:
                         queue.append((target, new_signal, curr))
             elif is_con:
@@ -1511,7 +1460,6 @@ def puzzle20_part1(FILE):
             else:
                 for target in targets:
                     queue.append((target, signal, curr))
-
     answer = low * high
     print(f"Puzzle 20 part 1: {answer}")
 
@@ -1534,7 +1482,6 @@ def puzzle20_part2(FILE):
             c[o][s] = "low"
         if d == ['rx']:
             r = s
-
     b = 0
     l = {k: 0 for k in c[r]}
     while True:
@@ -1604,13 +1551,10 @@ def steps_garden(matrix, starting_x, starting_y):
     matrix[starting_x][starting_y] = "."
     if (starting_x - 1 > -1 and matrix[starting_x - 1][starting_y] == '.'):
         matrix[starting_x - 1][starting_y] = "O"
-
     if (starting_y - 1 > -1 and matrix[starting_x][starting_y - 1] == '.'):
         matrix[starting_x][starting_y - 1] = "O"
-
     if (starting_x + 1 < len(matrix) and matrix[starting_x + 1][starting_y] == '.'):
         matrix[starting_x + 1][starting_y] = "O"
-
     if (starting_y + 1 < len(matrix[starting_x]) and matrix[starting_x][starting_y + 1] == '.'):
         matrix[starting_x][starting_y + 1] = "O"
     for i in range(63):
@@ -1621,22 +1565,17 @@ def steps_garden(matrix, starting_x, starting_y):
         for x, y in zip(positionX, positionY):
             if (x - 1 > -1 and matrix[x - 1][y] == '.'):
                 matrix[x - 1][y] = "O"
-
             if (y - 1 > -1 and matrix[x][y - 1] == '.'):
                 matrix[x][y - 1] = "O"
-
             if (x + 1 < len(matrix) and matrix[x + 1][y] == '.'):
                 matrix[x + 1][y] = "O"
-
             if (y + 1 < len(matrix[x]) and matrix[x][y + 1] == '.'):
                 matrix[x][y + 1] = "O"
-
     cont = 0
     for row in matrix:
         for l in row:
             if(l.upper() == "O"):
                 cont = cont + 1
-
     print_garden(matrix)
     return cont
 
@@ -1647,6 +1586,7 @@ def print_garden(matrix):
             f.write(l)
         f.write("\n")
     f.close()
+
 def puzzle21_part1_input():
     matrix = []
     staring_x = 0
@@ -1690,28 +1630,80 @@ def puzzle21():
 def drop_puzzle22(stack, skip=None):
     peaks = C.defaultdict(int)
     falls = 0
-
     for i, (u, v, w, x, y, z) in enumerate(stack):
         if i == skip: continue
-
         area = [(a, b) for a in range(u, x + 1)
                 for b in range(v, y + 1)]
         peak = max(peaks[a] for a in area) + 1
         for a in area: peaks[a] = peak + z - w
-
         stack[i] = (u, v, peak, x, y, peak + z - w)
         falls += peak < w
-
     return not falls, falls
 
 def puzzle22():
     stack = sorted([[*map(int, re.findall(r'\d+', l))]
                     for l in open('inputs/puzzle22')], key=lambda b: b[2])
-
     drop_puzzle22(stack)
     print(*map(sum, zip(*[drop_puzzle22(stack.copy(), skip=i)
                           for i in range(len(stack))])))
 
+def neighbors(x,y, width, height, grid):
+    for dx,dy in ((0,1),(1,0),(0,-1),(-1,0)):
+        nx,ny = x+dx,y+dy
+        if 0 <= nx < width and 0 <= ny < height:
+            if grid[ny][nx] in '.<>^v':
+                yield (nx,ny)
+
+def measure(edges, start, head):
+    count = 1
+    while len(edges[head]) == 2:
+        count += 1
+        next = [n for _,n in edges[head] if n != start][0]
+        start, head = (head, next)
+    return (count, head)
+
+def trails(width, height, grid):
+    edges = {}
+    for y in range(height):
+        for x in range(width):
+            if grid[y][x] in '.<>^v':
+                edges[(x,y)] = [(1,n) for n in neighbors(x,y,width, height, grid)]
+    # Collapse all trail segments into a single measured edge
+    newedges = {}
+    for k,v in edges.items():
+        if len(v) != 2:
+            newedges[k] = [measure(edges, k, n[1]) for n in v]
+    return newedges
+
+def dfs(trails, start, end):
+    seen = set([start])
+    stack = [(start, 0, seen)]
+    mx = 0
+    while stack:
+        pos, dist, seen = stack.pop()
+        if pos == end:
+            mx = max(mx, dist)
+        for d, next in trails[pos]:
+            if next not in seen:
+                stack.append((next, dist+d, seen | set([next])))
+    return mx
+
+def puzzle23_part1():
+    print("Part 1 of puzzle 23 solution is: "+str(solve_puzzle23(True)))
+
+def puzzle23_part2():
+    input = open('inputs/puzzle23').read()
+    grid = tuple(input.split('\n'))
+    width = len(grid[0])
+    height = len(grid)
+    start = (1, 0)
+    end = (width - 2, height - 1)
+    #6874
+    print("Part 2 of puzzle 23 solution is: "+str(dfs(trails(width, height, grid), start, end)))
+
+def puzzle23():
+    puzzle23_part1()
+    puzzle23_part2()
 def menu(puzz):
     if (puzz == "1"):
         puzzle1()
@@ -1757,6 +1749,8 @@ def menu(puzz):
         puzzle21()
     elif (puzz == "22"):
         puzzle22()
+    elif (puzz == "23"):
+        puzzle23()
 
 if __name__ == '__main__':
     bucle = "S"
