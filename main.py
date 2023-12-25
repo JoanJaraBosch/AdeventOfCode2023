@@ -1,5 +1,6 @@
 import collections
 import collections as C
+import itertools
 import re, math, functools, operator
 import sys
 from collections import deque
@@ -1840,8 +1841,81 @@ def puzzle24():
     print("The solution of part 1 for the puzzle 24 is: "+str(puzzle24_p1(d24s, 200000000000000, 400000000000000, debug=False)))
     print("The solution of part 2 for the puzzle 24 is: " + str(puzzle24_p2(d24s, debug=False)))
 
+def puzzle25_pathing(src, dst, cuts, nodes, cs):
+    come_from = {src: ""}
+    to_visit = set()
+    to_visit.add(src)
+    while len(to_visit):
+        n = to_visit.pop()
+        for nn in cs[n]:
+            proposed_edge = tuple(sorted((n, nn)))
+            if proposed_edge in cuts:
+                continue
+            if nn not in come_from:
+                assert(nn != n)
+                come_from[nn] = n
+                if nn == dst:
+                    break
+                to_visit.add(nn)
+    if dst not in come_from:
+        return None
+    path = set()
+    cur = dst
+    while cur != src:
+        prev = come_from[cur]
+        path.add(tuple(sorted((cur, prev))))
+        cur = prev
+    return path
+
 def puzzle25():
-    return 0
+    infile = open("inputs/puzzle25")
+    # infile = open("sample.txt")
+    nodes = set()
+    cs = collections.defaultdict(set)
+    for line in infile:
+        line = line.strip()
+        ends = line.split()
+        fr = ends[0][:-1]
+        nodes.add(fr)
+        for to in ends[1:]:
+            cs[fr].add(to)
+            cs[to].add(fr)
+            nodes.add(to)
+    nodes = list(nodes)
+    node_unions = {v: i for i, v in enumerate(nodes)}
+    node_union_count = len(nodes)
+    known_separate = set()
+    for n0, n1 in itertools.combinations(nodes, 2):
+        if node_unions[n0] == node_unions[n1]:
+            continue
+        if frozenset([node_unions[n0], node_unions[n1]]) in known_separate:
+            continue
+        path = set()
+        exclude = set()
+        for _ in range(4):
+            exclude.update(path)
+            path = puzzle25_pathing(n0, n1, exclude, nodes, cs)
+            if path is None:
+                break
+        if path is None:
+            known_separate.add(frozenset([node_unions[n0], node_unions[n1]]))
+        else:
+            # merge nodes
+            node_union_count -= 1
+            sys.stdout.flush()
+            to_replace = node_unions[n1]
+            to_replace_with = node_unions[n0]
+            for k in node_unions:
+                if node_unions[k] == to_replace:
+                    node_unions[k] = to_replace_with
+            known_separate = set(
+                (s - frozenset([to_replace])).union(frozenset([to_replace_with])) if to_replace in s else s for s in
+                known_separate)
+    root_ids = set(node_unions.values())
+    union0, union1 = iter(root_ids)
+    union0_size = sum(1 if v == union0 else 0 for v in node_unions.values())
+    union1_size = sum(1 if v == union1 else 0 for v in node_unions.values())
+    print("Solution of puzzle 25 is: "+str(union0_size * union1_size))
 
 def menu(puzz):
     if (puzz == "1"):
